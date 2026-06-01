@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="#8c2a1e"/>
+
+  <g fill="#faf6ec">
+    <!-- Static support: solid tapered column + base -->
+    <!-- Tapered column: narrow at pivot top, flaring wide at the foot -->
+    <polygon points="492,322 532,322 596,860 428,860"/>
+    <!-- Pivot cap at the top -->
+    <polygon points="512,300 542,330 482,330"/>
+    <!-- Base -->
+    <rect x="294" y="876" width="436" height="36" rx="8"/>
+
+    <!-- Beam, tilted -8° around the fulcrum pivot (wheat side drops) -->
+    <rect x="122" y="270" width="780" height="30" rx="14" transform="rotate(-8 512 300)"/>
+
+    <!-- LEFT SIDE: lower pan (no decoration) -->
+    <!-- Rod hanging straight down from rotated beam end -->
+    <rect x="227" y="339" width="10" height="142"/>
+    <!-- Pan: rim ellipse + bowl curve -->
+    <ellipse cx="232" cy="481" rx="138" ry="16"/>
+    <path d="M 94 481 Q 232 591 370 481 Z"/>
+
+    <!-- RIGHT SIDE: upper pan (no decoration) -->
+    <!-- Rod -->
+    <rect x="787" y="261" width="10" height="142"/>
+    <!-- Pan -->
+    <ellipse cx="792" cy="403" rx="138" ry="16"/>
+    <path d="M 654 403 Q 792 513 930 403 Z"/>
+  </g>
+</svg>

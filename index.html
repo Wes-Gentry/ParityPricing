@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light">
+
+<!-- Add-to-Home-Screen / PWA -->
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Parity Pricing">
+<meta name="theme-color" content="#8c2a1e">
+<meta name="description" content="Parity pricing tool for feedstuff valuation. Developed by Wes W. Gentry, Ph.D.">
+
+<title>Parity Pricing — Feedstuff Valuation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --bg:        #f4efe4;
+    --bg-card:  #faf6ec;
+    --bg-input: #fffdf7;
+    --ink:      #1f1a13;
+    --ink-soft: #574b39;
+    --rule:     #c9bea5;
+    --rule-soft:#e0d6c1;
+    --accent:   #8c2a1e;  /* barn red */
+    --accent-2: #5a6b3a;  /* sage */
+    --warn:     #b8651c;
+    --ok:       #4a6b2c;
+    --bad:      #8c2a1e;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    overflow-x: hidden;
+    max-width: 100%;
+    background-color: #f4efe4 !important;
+    color: #1f1a13 !important;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.45;
+    padding: 16px;
+    padding-bottom: 80px;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Force-light defense against aggressive in-app browser dark-mode overlays */
+  h1, h2, h3, h4, label, p, div, span, td, th, li {
+    color: inherit;
+  }
+
+  .wrap { max-width: 720px; margin: 0 auto; }
+
+  header {
+    text-align: center;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 14px;
+    margin-bottom: 20px;
+  }
+  header h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-size: 36px;
+    line-height: 1;
+    margin: 0;
+    letter-spacing: -0.015em;
+    color: #1f1a13 !important;
+  }
+  header .byline {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 14px;
+    color: #574b39 !important;
+    margin-top: 6px;
+  }
+  header .rule {
+    width: 60px;
+    height: 1px;
+    background: var(--rule);
+    margin: 10px auto 0 auto;
+  }
+
+  section.card {
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 14px 14px 16px 14px;
+    margin-bottom: 14px;
+  }
+  section.card h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 17px;
+    margin: 0 0 10px 0;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  section.card h2 .step {
+    background: var(--ink);
+    color: var(--bg);
+    border-radius: 50%;
+    width: 22px; height: 22px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  label { display: block; font-size: 13px; color: var(--ink-soft); margin-bottom: 3px; }
+
+  select, input[type="text"], input[type="number"] {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--ink);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input[type="number"] { font-family: 'IBM Plex Mono', monospace; }
+  select {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M0 0l5 6 5-6z' fill='%23574b39'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+  }
+  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+  .count-row { display: flex; align-items: center; gap: 10px; }
+  .count-row label { margin: 0; flex: 1; }
+  .count-row select { width: 80px; }
+
+  .ref-row, .test-row {
+    border: 1px solid var(--rule-soft);
+    border-left: 3px solid var(--accent-2);
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: var(--bg-input);
+  }
+  .ref-row .row-title, .test-row .row-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .field { margin-bottom: 8px; }
+  .field:last-child { margin-bottom: 0; }
+  .field-unit {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-left: 4px;
+  }
+
+  .nut-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .nut-row .label { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-soft); width: 24px; flex-shrink: 0; }
+
+  .nutbox {
+    background: var(--bg);
+    border: 1px dashed var(--rule);
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin-top: 8px;
+  }
+
+  button.calc {
+    width: 100%;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 4px;
+    padding: 14px;
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 18px;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    margin-top: 4px;
+  }
+  button.calc:hover { background: #6e2118; }
+  button.calc:disabled { background: var(--ink-soft); cursor: not-allowed; }
+
+  /* Results */
+  .results { margin-top: 18px; }
+  .results h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 6px;
+    margin: 0 0 14px 0;
+    color: #1f1a13 !important;
+  }
+  .results h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    margin: 14px 0 8px 0;
+    color: #1f1a13 !important;
+    background: var(--bg);
+    padding: 4px 0;
+  }
+  .fit-banner {
+    border-radius: 4px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    border: 1px solid;
+  }
+  .fit-banner .fit-label {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: 0.02em;
+  }
+  .fit-banner .fit-detail { font-size: 13px; margin-top: 4px; }
+  .fit-ideal     { background: #e8f0d9; border-color: #a8c084; color: #3a5419; }
+  .fit-verygood  { background: #ecf2dd; border-color: #b6c990; color: #4a6324; }
+  .fit-good      { background: #f4eedb; border-color: #c8b884; color: #6a5520; }
+  .fit-ok        { background: #f4e4d0; border-color: #cfa881; color: #7d4f1f; }
+  .fit-poor      { background: #f0d9d4; border-color: #c98a7e; color: #7a261b; }
+
+  table.implied {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-bottom: 14px;
+  }
+  table.implied th, table.implied td {
+    text-align: left;
+    padding: 8px 6px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  table.implied th {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    background: var(--bg);
+    border-bottom: 2px solid var(--ink);
+    font-size: 13px;
+  }
+  table.implied td.num {
+    font-family: 'IBM Plex Mono', monospace;
+    text-align: right;
+    white-space: nowrap;
+  }
+  table.implied td.neg { color: var(--bad); }
+
+  .parity-card {
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: var(--bg-input);
+  }
+  .parity-card .name {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+  .parity-card .prices { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .parity-card .price-block {
+    background: var(--bg);
+    padding: 8px;
+    border-radius: 3px;
+    border: 1px solid var(--rule-soft);
+  }
+  .parity-card .price-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    margin-bottom: 2px;
+  }
+  .parity-card .price-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px;
+    font-weight: 500;
+  }
+  .parity-card .price-value.neg { color: var(--bad); }
+
+  /* Implied nutrient value cards (replaces the wide table) */
+  .implied-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .implied-card {
+    background: var(--bg-input);
+    border: 1px solid var(--rule-soft);
+    border-left: 3px solid var(--accent-2);
+    border-radius: 4px;
+    padding: 10px 12px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 8px;
+  }
+  .implied-card .nut-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .implied-card .nut-unit {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    display: block;
+    margin-top: 2px;
+  }
+  .implied-card .nut-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px;
+    font-weight: 500;
+    text-align: right;
+    line-height: 1.1;
+  }
+  .implied-card .nut-friendly {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-align: right;
+    margin-top: 2px;
+  }
+  .implied-card .nut-value.neg, .implied-card .nut-friendly.neg { color: var(--bad); }
+
+  .notes {
+    background: var(--bg);
+    border-left: 3px solid var(--warn);
+    padding: 10px 12px;
+    margin-top: 10px;
+    font-size: 13px;
+    border-radius: 3px;
+  }
+  .notes b { font-family: 'Fraunces', serif; }
+  .notes ul { margin: 4px 0 0 18px; padding: 0; }
+
+  .warn-msg {
+    background: #f4e4d0;
+    border: 1px solid var(--warn);
+    color: #7d4f1f;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    font-size: 14px;
+  }
+
+  footer {
+    margin-top: 30px;
+    padding: 14px 14px;
+    border-top: 2px solid var(--ink);
+    background: var(--bg-card);
+    border-radius: 4px;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #1f1a13 !important;
+    text-align: left;
+  }
+  footer .star {
+    font-family: 'IBM Plex Mono', monospace;
+    font-style: normal;
+    font-weight: 500;
+    margin-right: 6px;
+  }
+
+  /* Phone layout tweaks */
+  @media (max-width: 480px) {
+    body { padding: 12px; font-size: 14px; }
+    header h1 { font-size: 24px; }
+    .grid-3 { grid-template-columns: 1fr 1fr; }
+    .parity-card .prices { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Parity Pricing</h1>
+  <div class="byline">Developed by Wes W. Gentry, Ph.D.</div>
+  <div class="rule"></div>
+</header>
+
+<section class="card">
+  <h2><span class="step">1</span> Setup</h2>
+  <div class="count-row">
+    <label>Number of reference feeds &amp; nutrients (must match)</label>
+    <select id="nCount">
+      <option value="2">2</option>
+      <option value="3" selected>3</option>
+    </select>
+  </div>
+</section>
+
+<section class="card">
+  <h2><span class="step">2</span> Reference Feedstuffs</h2>
+  <div id="refContainer"></div>
+</section>
+
+<section class="card">
+  <h2><span class="step">3</span> Valuation Nutrients</h2>
+  <div id="nutContainer"></div>
+</section>
+
+<section class="card">
+  <h2><span class="step">4</span> Test Feedstuffs</h2>
+  <div id="testContainer"></div>
+</section>
+
+<button class="calc" id="calcBtn">Calculate Parity →</button>
+
+<div class="results" id="results" style="display:none;"></div>
+
+<footer>
+  <span class="star">*</span>Value is determined simply based on nutrient content. Inclusion and nutrient constraints of the ration will ultimately determine ingredient value.
+</footer>
+
+</div>
+
+<script>
+"use strict";
+
+// =====================================================================
+// Nutrient definitions
+// =====================================================================
+const NUTRIENTS = [
+  { code: 'CP',      name: 'Protein',     unit: '%DM',      pct: true,  perLb: true  },
+  { code: 'NEg',     name: 'NEg',         unit: 'Mcal/cwt', pct: false, perLb: false },
+  { code: 'Fat',     name: 'Fat',         unit: '%DM',      pct: true,  perLb: true  },
+  { code: 'RoughDM', name: 'Roughage DM', unit: '% of DM',  pct: true,  perLb: false }
+];
+const NUT_BY_CODE = Object.fromEntries(NUTRIENTS.map(n => [n.code, n]));
+
+// =====================================================================
+// Reference feedstuff defaults. Values on DM basis. NE in Mcal/cwt.
+// These are book-style starting points — every cell is editable.
+// =====================================================================
+const FEEDS = [
+  { code:'rolled_corn',  name:'Rolled corn',          DM:88, CP:9.4,   NEm:102.5, NEg:68.3, Fat:4.0,  ADF:3.0,  NDF:9.5,  RoughDM:0   },
+  { code:'corn_silage',  name:'Corn silage',          DM:35, CP:8.5,   NEm:71.0,  NEg:43.0, Fat:3.2,  ADF:26.0, NDF:45.0, RoughDM:50  },
+  { code:'alfalfa_hay',  name:'Alfalfa hay',          DM:89, CP:18.2,  NEm:62.4,  NEg:33.1, Fat:2.5,  ADF:35.0, NDF:45.0, RoughDM:100 },
+  { code:'grass_hay',    name:'Grass hay',            DM:89, CP:9.0,   NEm:51.0,  NEg:23.0, Fat:2.0,  ADF:39.0, NDF:65.0, RoughDM:100 },
+  { code:'corn_stalks',  name:'Corn stalks',          DM:86, CP:5.5,   NEm:45.0,  NEg:18.0, Fat:1.5,  ADF:47.0, NDF:73.0, RoughDM:100 },
+  { code:'ddg',          name:'Dry distillers grain', DM:90, CP:30.0,  NEm:99.0,  NEg:68.0, Fat:10.0, ADF:18.0, NDF:35.0, RoughDM:0   },
+  { code:'sbm',          name:'Soybean meal',         DM:89, CP:48.0,  NEm:88.2,  NEg:55.7, Fat:1.5,  ADF:8.0,  NDF:14.0, RoughDM:0   },
+  { code:'urea',         name:'Urea',                 DM:99, CP:281.0, NEm:0,     NEg:0,    Fat:0,    ADF:0,    NDF:0,    RoughDM:0   }
+];
+const FEED_BY_CODE = Object.fromEntries(FEEDS.map(f => [f.code, f]));
+
+// =====================================================================
+// State
+// =====================================================================
+let N = 3;                                        // # refs = # nutrients
+let refSelections = ['rolled_corn','alfalfa_hay','sbm']; // by code, length N
+let nutSelections = ['CP','NEg','RoughDM'];       // by code, length N
+let testNames     = ['Test 1','Test 2','Test 3'];
+
+// =====================================================================
+// UI builders
+// =====================================================================
+function buildRefs() {
+  const c = document.getElementById('refContainer');
+  c.innerHTML = '';
+  for (let i = 0; i < N; i++) {
+    const code = refSelections[i] || FEEDS[i % FEEDS.length].code;
+    refSelections[i] = code;
+    const f = FEED_BY_CODE[code];
+
+    const div = document.createElement('div');
+    div.className = 'ref-row';
+    div.innerHTML = `
+      <div class="row-title">Reference ${i+1}</div>
+      <div class="field">
+        <label>Feedstuff (loads defaults; type over to edit)</label>
+        <select data-ref="${i}" data-kind="feed">
+          ${FEEDS.map(ff => `<option value="${ff.code}" ${ff.code===code?'selected':''}>${ff.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>DM <span class="field-unit">%</span></label>
+          <input type="number" inputmode="decimal" step="0.1" data-ref="${i}" data-key="DM" value="${f.DM}">
+        </div>
+        <div class="field">
+          <label>Listed price <span class="field-unit">$/ton AF</span></label>
+          <input type="number" inputmode="decimal" step="0.01" data-ref="${i}" data-key="price" placeholder="e.g. 200.00">
+        </div>
+      </div>
+      <div class="grid-3">
+        ${NUTRIENTS.map(n => `
+          <div class="field">
+            <label>${n.name} <span class="field-unit">${n.unit}</span></label>
+            <input type="number" inputmode="decimal" step="0.01" data-ref="${i}" data-key="${n.code}" value="${f[n.code]}">
+          </div>`).join('')}
+      </div>
+    `;
+    c.appendChild(div);
+  }
+
+  // Wire feed-pick dropdowns to load defaults
+  c.querySelectorAll('select[data-kind="feed"]').forEach(sel => {
+    sel.addEventListener('change', e => {
+      const i = +e.target.dataset.ref;
+      const code = e.target.value;
+      refSelections[i] = code;
+      const f = FEED_BY_CODE[code];
+      const row = e.target.closest('.ref-row');
+      row.querySelector(`input[data-key="DM"]`).value = f.DM;
+      NUTRIENTS.forEach(n => {
+        row.querySelector(`input[data-key="${n.code}"]`).value = f[n.code];
+      });
+      // Don't overwrite the price field; the user types that.
+    });
+  });
+}
+
+function buildNuts() {
+  const c = document.getElementById('nutContainer');
+  c.innerHTML = '';
+  // Make sure selections array is the right length and has no dupes
+  for (let i = 0; i < N; i++) {
+    if (!nutSelections[i]) {
+      const used = new Set(nutSelections.slice(0, i));
+      nutSelections[i] = NUTRIENTS.find(n => !used.has(n.code)).code;
+    }
+  }
+  nutSelections = nutSelections.slice(0, N);
+
+  for (let i = 0; i < N; i++) {
+    const div = document.createElement('div');
+    div.className = 'nut-row';
+    const used = new Set(nutSelections.filter((_, idx) => idx !== i));
+    div.innerHTML = `
+      <span class="label">#${i+1}</span>
+      <select data-nut="${i}">
+        ${NUTRIENTS.map(n => {
+          const disabled = used.has(n.code) ? 'disabled' : '';
+          const selected = n.code === nutSelections[i] ? 'selected' : '';
+          return `<option value="${n.code}" ${selected} ${disabled}>${n.name} (${n.unit})</option>`;
+        }).join('')}
+      </select>
+    `;
+    c.appendChild(div);
+  }
+
+  c.querySelectorAll('select[data-nut]').forEach(sel => {
+    sel.addEventListener('change', e => {
+      const i = +e.target.dataset.nut;
+      nutSelections[i] = e.target.value;
+      buildNuts();     // rebuild to update disabled options
+      buildTests();    // test inputs depend on selected nutrients
+    });
+  });
+}
+
+function buildTests() {
+  const c = document.getElementById('testContainer');
+  c.innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    const div = document.createElement('div');
+    div.className = 'test-row';
+    div.innerHTML = `
+      <div class="row-title">Test ${i+1}</div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Name</label>
+          <input type="text" data-test="${i}" data-key="name" value="${testNames[i]}">
+        </div>
+        <div class="field">
+          <label>DM <span class="field-unit">%</span></label>
+          <input type="number" inputmode="decimal" step="0.1" data-test="${i}" data-key="DM" placeholder="e.g. 88">
+        </div>
+      </div>
+      <div class="grid-3">
+        ${nutSelections.map(code => {
+          const n = NUT_BY_CODE[code];
+          return `
+            <div class="field">
+              <label>${n.name} <span class="field-unit">${n.unit}</span></label>
+              <input type="number" inputmode="decimal" step="0.01" data-test="${i}" data-key="${code}" placeholder="0">
+            </div>`;
+        }).join('')}
+      </div>
+    `;
+    c.appendChild(div);
+  }
+
+  // Persist test names
+  c.querySelectorAll('input[data-key="name"]').forEach(inp => {
+    inp.addEventListener('input', e => {
+      testNames[+e.target.dataset.test] = e.target.value;
+    });
+  });
+}
+
+// =====================================================================
+// Linear algebra: solve M·v = p (square, N×N, N is 2 or 3)
+// Gaussian elimination with partial pivoting. Returns null if singular.
+// =====================================================================
+function solveLinear(M_in, p_in) {
+  const n = M_in.length;
+  // Copy & augment
+  const A = M_in.map((row, i) => row.concat([p_in[i]]));
+
+  for (let k = 0; k < n; k++) {
+    // Partial pivot
+    let maxRow = k, maxVal = Math.abs(A[k][k]);
+    for (let r = k+1; r < n; r++) {
+      if (Math.abs(A[r][k]) > maxVal) { maxVal = Math.abs(A[r][k]); maxRow = r; }
+    }
+    if (maxVal < 1e-12) return null;
+    if (maxRow !== k) [A[k], A[maxRow]] = [A[maxRow], A[k]];
+
+    for (let r = k+1; r < n; r++) {
+      const factor = A[r][k] / A[k][k];
+      for (let c = k; c <= n; c++) A[r][c] -= factor * A[k][c];
+    }
+  }
+  const v = new Array(n).fill(0);
+  for (let i = n-1; i >= 0; i--) {
+    let s = A[i][n];
+    for (let j = i+1; j < n; j++) s -= A[i][j] * v[j];
+    v[i] = s / A[i][i];
+  }
+  return v;
+}
+
+// Condition number using infinity norms, on a column-normalized M.
+// Column normalization removes scale differences across nutrients
+// (so a 0–10 Fat column doesn't artificially dominate a 5–300 CP column).
+function conditionNumber(M_in) {
+  const n = M_in.length;
+  // Column means (absolute)
+  const colScale = [];
+  for (let j = 0; j < n; j++) {
+    let s = 0;
+    for (let i = 0; i < n; i++) s += Math.abs(M_in[i][j]);
+    colScale.push(s / n || 1);
+  }
+  // Normalize
+  const M = M_in.map(row => row.map((v, j) => v / colScale[j]));
+
+  // ||M||∞ = max row sum of |entries|
+  let normM = 0;
+  for (let i = 0; i < n; i++) {
+    let s = 0;
+    for (let j = 0; j < n; j++) s += Math.abs(M[i][j]);
+    if (s > normM) normM = s;
+  }
+  // Solve M·X = I  →  X = M⁻¹; column j of X is M⁻¹·e_j
+  const inv = [];
+  for (let j = 0; j < n; j++) {
+    const e = new Array(n).fill(0); e[j] = 1;
+    const x = solveLinear(M, e);
+    if (!x) return Infinity;
+    inv.push(x);
+  }
+  // ||M⁻¹||∞ = max row sum of |inv entries|. inv[j] is a column, so row i is [inv[0][i], inv[1][i], ...]
+  let normInv = 0;
+  for (let i = 0; i < n; i++) {
+    let s = 0;
+    for (let j = 0; j < n; j++) s += Math.abs(inv[j][i]);
+    if (s > normInv) normInv = s;
+  }
+  return normM * normInv;
+}
+
+// =====================================================================
+// Fit quality from condition number
+// =====================================================================
+function fitQuality(cond) {
+  if (cond < 5)    return { label: 'Ideal',     cls: 'fit-ideal',
+    detail: 'Your reference feeds occupy clearly distinct nutrient territory. Trust the implied values.' };
+  if (cond < 15)   return { label: 'Very Good', cls: 'fit-verygood',
+    detail: 'References span the selected nutrients well. Implied values are stable.' };
+  if (cond < 50)   return { label: 'Good',      cls: 'fit-good',
+    detail: 'Usable. Some sensitivity to input changes, but signs and rough magnitudes are reliable.' };
+  if (cond < 200)  return { label: 'OK',        cls: 'fit-ok',
+    detail: 'References overlap nutritionally. Sanity-check before pricing decisions.' };
+  return            { label: 'Poor',      cls: 'fit-poor',
+    detail: 'References too similar for the selected nutrients. Small input changes will swing implied values wildly.' };
+}
+
+function improvementNotes(cond, nutVals, refData) {
+  const notes = [];
+  if (cond >= 50) {
+    notes.push('Pick references with more distinct nutrient profiles — a forage + a grain + a protein meal usually beats three grains or three hays.');
+    notes.push('If two of your nutrients move together across all references (for example two energy measures), drop one and try a more independent nutrient.');
+  }
+  if (nutVals.some(v => v < 0)) {
+    notes.push('One or more implied nutrient values are negative. This usually means the reference prices are inconsistent for the selected nutrients, or a reference price is wrong. Re-check listed prices and reference composition.');
+  }
+  // Check for refs with prices that look like outliers (very rough)
+  const dmPrices = refData.map(r => r.price / (r.DM / 100));
+  const avg = dmPrices.reduce((a,b)=>a+b,0) / dmPrices.length;
+  return notes;
+}
+
+// =====================================================================
+// Read inputs from DOM into structured data
+// =====================================================================
+function readRefs() {
+  const rows = [];
+  for (let i = 0; i < N; i++) {
+    const row = { i };
+    row.DM = parseFloat(document.querySelector(`input[data-ref="${i}"][data-key="DM"]`).value);
+    row.price = parseFloat(document.querySelector(`input[data-ref="${i}"][data-key="price"]`).value);
+    row.name = FEED_BY_CODE[refSelections[i]].name;
+    NUTRIENTS.forEach(n => {
+      row[n.code] = parseFloat(document.querySelector(`input[data-ref="${i}"][data-key="${n.code}"]`).value);
+    });
+    rows.push(row);
+  }
+  return rows;
+}
+
+function readTests() {
+  const rows = [];
+  for (let i = 0; i < 3; i++) {
+    const row = { i };
+    row.name = document.querySelector(`input[data-test="${i}"][data-key="name"]`).value || `Test ${i+1}`;
+    row.DM = parseFloat(document.querySelector(`input[data-test="${i}"][data-key="DM"]`).value);
+    nutSelections.forEach(code => {
+      const el = document.querySelector(`input[data-test="${i}"][data-key="${code}"]`);
+      row[code] = parseFloat(el.value);
+    });
+    rows.push(row);
+  }
+  return rows;
+}
+
+// =====================================================================
+// Calculate
+// =====================================================================
+function calculate() {
+  const refData = readRefs();
+  const testData = readTests();
+
+  // Validate refs
+  const errs = [];
+  refData.forEach((r, i) => {
+    if (!isFinite(r.DM) || r.DM <= 0 || r.DM > 100) errs.push(`Reference ${i+1}: DM% must be between 0 and 100.`);
+    if (!isFinite(r.price) || r.price <= 0) errs.push(`Reference ${i+1}: enter a listed $/ton AF price.`);
+    nutSelections.forEach(code => {
+      if (!isFinite(r[code])) errs.push(`Reference ${i+1}: ${NUT_BY_CODE[code].name} is missing.`);
+    });
+  });
+
+  if (errs.length) {
+    renderError(errs);
+    return;
+  }
+
+  // Build M (rows = refs, cols = nutrients) and price vector on DM basis
+  const M = refData.map(r => nutSelections.map(code => r[code]));
+  const p = refData.map(r => r.price / (r.DM / 100));   // $/ton DM
+
+  const v = solveLinear(M, p);
+  if (!v) { renderError(['Reference feeds are linearly dependent for the selected nutrients — no unique solution. Try different references or nutrients.']); return; }
+
+  const cond = conditionNumber(M);
+  const fit = fitQuality(cond);
+  const notes = improvementNotes(cond, v, refData);
+
+  // Test feed parity prices
+  const testResults = testData.map(t => {
+    const validNuts = nutSelections.every(code => isFinite(t[code]));
+    const validDM = isFinite(t.DM) && t.DM > 0 && t.DM <= 100;
+    if (!validNuts || !validDM) {
+      return { name: t.name, missing: true };
+    }
+    const priceDM = nutSelections.reduce((s, code, j) => s + t[code] * v[j], 0);
+    const priceAF = priceDM * (t.DM / 100);
+    return { name: t.name, priceDM, priceAF, DM: t.DM };
+  });
+
+  renderResults({ refData, v, cond, fit, notes, testResults });
+}
+
+// =====================================================================
+// Rendering
+// =====================================================================
+function renderError(errs) {
+  const r = document.getElementById('results');
+  r.style.display = 'block';
+  r.innerHTML = `<h2>Cannot calculate</h2>` +
+    errs.map(e => `<div class="warn-msg">${e}</div>`).join('');
+  r.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderResults({ refData, v, cond, fit, notes, testResults }) {
+  const r = document.getElementById('results');
+  r.style.display = 'block';
+
+  // Implied nutrient values as mobile-friendly cards
+  const impliedCards = nutSelections.map((code, j) => {
+    const n = NUT_BY_CODE[code];
+    const val = v[j];
+    const negCls = val < 0 ? 'neg' : '';
+    // Convert to friendly unit:
+    //   %DM nutrient → $/lb of nutrient = val / 20 (since 1% per ton DM = 20 lb)
+    //   Mcal/cwt     → $/Mcal           = val / 20 (since 1 Mcal/cwt per ton DM = 20 Mcal)
+    let friendly = '';
+    if (n.pct && n.perLb) friendly = `$${(val/20).toFixed(3)} per lb`;
+    else if (!n.pct)      friendly = `$${(val/20).toFixed(3)} per Mcal`;
+    else                  friendly = '';
+    return `<div class="implied-card">
+      <div>
+        <div class="nut-name">${n.name}</div>
+      </div>
+      <div>
+        <div class="nut-value ${negCls}">${val.toFixed(3)}</div>
+        ${friendly ? `<div class="nut-friendly ${negCls}">${friendly}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Test feed cards
+  const testCards = testResults.map(t => {
+    if (t.missing) {
+      return `<div class="parity-card"><div class="name">${t.name}</div>
+        <div style="font-size:13px;color:var(--ink-soft);">Enter DM% and values for all selected nutrients to price this feed.</div></div>`;
+    }
+    const negDM = t.priceDM < 0 ? 'neg' : '';
+    const negAF = t.priceAF < 0 ? 'neg' : '';
+    return `<div class="parity-card">
+      <div class="name">${t.name} <span style="font-size:12px;color:var(--ink-soft);font-weight:400;">(${t.DM}% DM)</span></div>
+      <div class="prices">
+        <div class="price-block">
+          <div class="price-label">Parity $/ton DM</div>
+          <div class="price-value ${negDM}">$${t.priceDM.toFixed(2)}</div>
+        </div>
+        <div class="price-block">
+          <div class="price-label">Parity $/ton AF</div>
+          <div class="price-value ${negAF}">$${t.priceAF.toFixed(2)}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const notesHtml = notes.length
+    ? `<div class="notes"><b>Notes on this fit</b><ul>${notes.map(n => `<li>${n}</li>`).join('')}</ul></div>`
+    : '';
+
+  r.innerHTML = `
+    <h2>Results</h2>
+
+    <div class="fit-banner ${fit.cls}">
+      <div class="fit-label">Fit: ${fit.label}</div>
+      <div class="fit-detail">${fit.detail}</div>
+    </div>
+
+    <h3>Nutrient Regression Estimates</h3>
+    <div class="implied-grid">${impliedCards}</div>
+
+    <h3>Test feed parity prices</h3>
+    ${testCards}
+
+    ${notesHtml}
+  `;
+  r.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// =====================================================================
+// Wire-up
+// =====================================================================
+document.getElementById('nCount').addEventListener('change', e => {
+  N = parseInt(e.target.value, 10);
+  // Keep existing selections where possible
+  buildRefs();
+  buildNuts();
+  buildTests();
+});
+document.getElementById('calcBtn').addEventListener('click', calculate);
+
+// Initial render
+buildRefs();
+buildNuts();
+buildTests();
+</script>
+</body>
+</html>
